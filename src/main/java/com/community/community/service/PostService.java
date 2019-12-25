@@ -1,5 +1,6 @@
 package com.community.community.service;
 
+import com.community.community.dto.PaginationDTO;
 import com.community.community.dto.PostDTO;
 import com.community.community.mapper.PostMapper;
 import com.community.community.mapper.UserMapper;
@@ -20,9 +21,23 @@ public class PostService {
     @Autowired
     private UserMapper userMapper;
 
-    public List<PostDTO> list() {
-        List<Post> posts = postMapper.list();
+    public PaginationDTO list(Integer page, Integer size) {
+
+        Integer totalCount = postMapper.count();
+        PaginationDTO paginationDTO = new PaginationDTO();
+        paginationDTO.setPagination(totalCount, page, size);
+        if (page < 1) {
+            page = 1;
+        }
+        if (page > paginationDTO.getTotalPage()) {
+            page = paginationDTO.getTotalPage();
+        }
+
+        Integer offset = size * (page - 1);
+
+        List<Post> posts = postMapper.list(offset,size);
         List<PostDTO> postDTOList = new ArrayList<>();
+
         for (Post post : posts){
             User user = userMapper.findById(post.getCreator());
             PostDTO postDTO= new PostDTO();
@@ -30,7 +45,7 @@ public class PostService {
             postDTO.setUser(user);
             postDTOList.add(postDTO);
         }
-
-        return postDTOList;
+        paginationDTO.setPosts(postDTOList);
+        return paginationDTO;
     }
 }

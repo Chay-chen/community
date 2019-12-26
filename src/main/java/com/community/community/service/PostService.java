@@ -22,20 +22,68 @@ public class PostService {
     private UserMapper userMapper;
 
     public PaginationDTO list(Integer page, Integer size) {
-
-        Integer totalCount = postMapper.count();
         PaginationDTO paginationDTO = new PaginationDTO();
-        paginationDTO.setPagination(totalCount, page, size);
+
+        Integer totalPage;
+        Integer totalCount = postMapper.count();
+
+        if (totalCount % size ==0){
+            totalPage = totalCount / size;
+        }else {
+            totalPage = totalCount / size + 1;
+        }
+
+
         if (page < 1) {
             page = 1;
         }
-        if (page > paginationDTO.getTotalPage()) {
-            page = paginationDTO.getTotalPage();
+        if (page > totalPage) {
+            page = totalPage;
+        }
+        paginationDTO.setPagination(totalPage, page);
+        Integer offset = size * (page - 1);
+        if (offset < 0){
+            offset = 1;
+        }
+        List<Post> posts = postMapper.list(offset,size);
+        List<PostDTO> postDTOList = new ArrayList<>();
+
+        for (Post post : posts){
+            User user = userMapper.findById(post.getCreator());
+            PostDTO postDTO= new PostDTO();
+            BeanUtils.copyProperties(post,postDTO);
+            postDTO.setUser(user);
+            postDTOList.add(postDTO);
+        }
+        paginationDTO.setPosts(postDTOList);
+        return paginationDTO;
+    }
+
+    public PaginationDTO list(Integer userId, Integer page, Integer size) {
+        PaginationDTO paginationDTO = new PaginationDTO();
+        Integer totalPage;
+        Integer totalCount = postMapper.countByUserID(userId);
+
+        if (totalCount % size ==0){
+            totalPage = totalCount / size;
+        }else {
+            totalPage = totalCount / size + 1;
         }
 
-        Integer offset = size * (page - 1);
 
-        List<Post> posts = postMapper.list(offset,size);
+        if (page < 1) {
+            page = 1;
+        }
+        if (page > totalPage) {
+            page = totalPage;
+        }
+        paginationDTO.setPagination(totalPage, page);
+
+        Integer offset = size * (page - 1);
+        if (offset < 0){
+            offset = 1;
+        }
+        List<Post> posts = postMapper.listByUserId(userId,offset,size);
         List<PostDTO> postDTOList = new ArrayList<>();
 
         for (Post post : posts){

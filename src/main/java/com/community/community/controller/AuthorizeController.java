@@ -54,7 +54,7 @@ public class AuthorizeController {
             userMapper.insert(user);
             response.addCookie(new Cookie("token",token));
             //request.getSession().setAttribute("user", githubUser);
-            //System.out.println(githubUser.getName());
+            System.out.println(githubUser.getName());
             return "redirect:/";
         }else {
             return "redirect:/";
